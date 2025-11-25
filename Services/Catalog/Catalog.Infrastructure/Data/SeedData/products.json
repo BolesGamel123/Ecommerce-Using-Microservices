@@ -1,0 +1,50 @@
+[
+  {
+    "Id": "66c76a5f6a4b9c1e10a33331",
+    "Name": "Nike Air Zoom Pegasus",
+    "Description": "Comfortable running shoes with responsive cushioning.",
+    "Summary": "Best for runners",
+    "ImageFile": "nike_air_pegasus.png",
+    "Price": 120.50,
+    "Brand": {
+      "Id": "66c76a5f6a4b9c1e10a11111",
+      "Name": "Nike"
+    },
+    "Type": {
+      "Id": "66c76a5f6a4b9c1e10a22221",
+      "Name": "Shoes"
+    }
+  },
+  {
+    "Id": "66c76a5f6a4b9c1e10a33332",
+    "Name": "Adidas Ultraboost 21",
+    "Description": "High performance running shoes with boost technology.",
+    "Summary": "Premium comfort",
+    "ImageFile": "adidas_ultraboost.png",
+    "Price": 150.00,
+    "Brand": {
+      "Id": "66c76a5f6a4b9c1e10a11112",
+      "Name": "Adidas"
+    },
+    "Type": {
+      "Id": "66c76a5f6a4b9c1e10a22221",
+      "Name": "Shoes"
+    }
+  },
+  {
+    "Id": "66c76a5f6a4b9c1e10a33333",
+    "Name": "Puma Training T-Shirt",
+    "Description": "Lightweight breathable T-shirt for training.",
+    "Summary": "Workout essential",
+    "ImageFile": "puma_tshirt.png",
+    "Price": 35.99,
+    "Brand": {
+      "Id": "66c76a5f6a4b9c1e10a11113",
+      "Name": "Puma"
+    },
+    "Type": {
+      "Id": "66c76a5f6a4b9c1e10a22222",
+      "Name": "T-Shirt"
+    }
+  }
+]
