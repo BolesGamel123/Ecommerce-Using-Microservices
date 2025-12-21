@@ -1,5 +1,6 @@
 ﻿using Catalog.Core.Entities;
 using Catalog.Core.Repositories;
+using Catalog.Core.Specs;
 using Catolog.Infrastructure.Data.Contexts;
 using MongoDB.Driver;
 
@@ -39,9 +40,28 @@ namespace Catalog.Infrastructure.Repositories
         {
             return await _context.Products.Find(p => p.Id == id).FirstOrDefaultAsync();
         }
-        public async Task<IEnumerable<Product>> GetAllProducts()
+        public async Task<Pagination<Product>> GetAllProducts(CatalogSpecParams catalogSpecParams)
         {
-            return await _context.Products.Find(p => true).ToListAsync();
+            var builder = Builders<Product>.Filter;
+            var filter = builder.Empty;
+            if (!string.IsNullOrEmpty(catalogSpecParams.Search))
+            {
+                filter &= builder.Where(p => p.Name.ToLower().Contains(catalogSpecParams.Search.ToLower()));
+            }
+
+            if (!string.IsNullOrEmpty(catalogSpecParams.BrandId))
+            {
+                filter &= builder.Eq(p => p.Brand.Id, catalogSpecParams.BrandId);
+            }
+
+            if (!string.IsNullOrEmpty(catalogSpecParams.TypeId))
+            {
+                filter &= builder.Eq(p => p.Type.Id, catalogSpecParams.TypeId);
+            }
+            var totalCount = await _context.Products.CountDocumentsAsync(filter);
+            var data = await DataFilter(catalogSpecParams, filter);
+            return new Pagination<Product>(data, (int)totalCount, catalogSpecParams.PageIndex, catalogSpecParams.PageSize);
+
         }
 
         public async Task<IEnumerable<Product>> GetAllProductsByBrand(string name)
@@ -63,6 +83,30 @@ namespace Catalog.Infrastructure.Repositories
             return await _context.Types.Find(t => true).ToListAsync();
         }
 
+        private async Task<IReadOnlyList<Product>> DataFilter(CatalogSpecParams catalogSpecParams, FilterDefinition<Product> filter)
+        {
+            var sort = Builders<Product>.Sort.Ascending(p => p.Name);
+            if (!string.IsNullOrEmpty(catalogSpecParams.Sort))
+            {
+                switch (catalogSpecParams.Sort.ToLower())
+                {
+                    case "priceasc":
+                        sort = Builders<Product>.Sort.Ascending(p => p.Price);
+                        break;
+                    case "pricedesc":
+                        sort = Builders<Product>.Sort.Descending(p => p.Price);
+                        break;
+                    default:
+                        sort = Builders<Product>.Sort.Ascending(p => p.Name);
+                        break;
+                }
+            }
+            return await _context.Products.Find(filter)
+                .Sort(sort)
+                .Skip(catalogSpecParams.PageSize * (catalogSpecParams.PageIndex - 1))
+                .Limit(catalogSpecParams.PageSize)
+                .ToListAsync();
+        }
 
     }
 }

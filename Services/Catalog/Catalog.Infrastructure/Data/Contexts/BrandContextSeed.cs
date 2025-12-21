@@ -13,7 +13,6 @@ namespace Catolog.Infrastructure.Data.Contexts
                 return;
 
             var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "SeedData", "brands.json");
-            //var filepath = Path.Combine("Data", "SeedData", "brands.json");
             if (!File.Exists(filepath))
                 throw new FileNotFoundException("Seed data file not found", filepath);
 
