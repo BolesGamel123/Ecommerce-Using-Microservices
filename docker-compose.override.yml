@@ -4,12 +4,20 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
     ports:
-      - "8080"
+      - "8000:8080"
 
   basket.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
     ports:
-      - "8080"
+      - "8001:8080"
+
+
+  discount.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "8002:8080"
 
