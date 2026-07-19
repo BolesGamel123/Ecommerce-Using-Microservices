@@ -1,10 +1,13 @@
 using Asp.Versioning;
+using Basket.Application.GrpcServices;
 using Basket.Application.Mappers;
 using Basket.Application.Queries;
 using Basket.Core.Repositories;
 using Basket.Infrastructure.Repositories;
+using Discount.Grpc.proto3;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using static Discount.Grpc.proto3.DiscountProtoService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +31,9 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(GetBasketQuery).Assembly);
 });
 builder.Services.AddScoped<IBasketRepository, BasketRepository>();
+builder.Services.AddScoped<DiscountGrpcService>();
+builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(
+    cfg => cfg.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]));
 
 
 builder.Services.AddApiVersioning(options =>
