@@ -41,11 +41,10 @@ namespace Basket.API.Controllers
 
         [HttpDelete]
         [Route("[action]/{userName}", Name = "DeleteBasket")]
-        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         public async Task<ActionResult> DeleteProduct(string userName)
         {
-            var result = await _mediator.Send(new DeleteBasketCommand(userName));
-            return NoContent();
+            var command = new DeleteBasketCommand(userName);
+            return Ok(await _mediator.Send(command));
         }
     }
 }

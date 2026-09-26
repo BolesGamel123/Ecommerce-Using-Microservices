@@ -21,7 +21,7 @@
         public string CVV { get; set; }
 
 
-        public string PaymentMethod { get; set; }
+        public int PaymentMethod { get; set; }
 
 
 
