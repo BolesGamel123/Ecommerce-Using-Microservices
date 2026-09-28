@@ -5,6 +5,7 @@ using Basket.Application.Queries;
 using Basket.Core.Repositories;
 using Basket.Infrastructure.Repositories;
 using Discount.Grpc.proto3;
+using MassTransit;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using static Discount.Grpc.proto3.DiscountProtoService;
@@ -35,6 +36,12 @@ builder.Services.AddScoped<DiscountGrpcService>();
 builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(
     cfg => cfg.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]));
 
+builder.Services.AddMassTransit(config =>
+config.UsingRabbitMq((ct,cfg)=>
+{
+    cfg.Host(builder.Configuration["EventBusSettings:HostAddress"]);
+}));
+builder.Services.AddMassTransitHostedService();
 
 builder.Services.AddApiVersioning(options =>
 {

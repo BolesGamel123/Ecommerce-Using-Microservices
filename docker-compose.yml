@@ -65,6 +65,13 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+  rabbitmq:
+     image: rabbitmq:3-management-alpine
+     container_name: rabbitmq
+     restart: always
+     ports:
+       - "5672:5672"
+       - "15672:15672"
 
   pgadmin:
     image: dpage/pgadmin4
@@ -87,9 +94,11 @@ services:
       - "8001:8080"
     depends_on:
       - basketdb
+      - rabbitmq
     environment:
       - RedisCacheSettings__ConnectionString=basketdb:6379
       - "GrpcSettings__DiscountUrl=http://discount.api:8080"
+      - "EventBusSettings__HostAddress=amqp://guest:guest@rabbitmq:5672"
 
   portainer:
     image: portainer/portainer-ce
@@ -124,8 +133,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - "ConnectionStrings__OrderConnectionString=Server=orderdb;Database=OrderDb;User Id=sa;Password=P@ssw0rd123;TrustServerCertificate=True;"
+      - "EventBusSettings__HostAddress=amqp://guest:guest@rabbitmq:5672"
     depends_on:
       - orderdb
+      - rabbitmq
     ports:
       - "8003:8080"
 
