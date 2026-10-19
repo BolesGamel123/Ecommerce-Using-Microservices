@@ -1,18 +1,19 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using Basket.Application.Commands;
 using Basket.Application.Queries;
 using Basket.Application.Responses;
 using Basket.Core.Entities;
 using EventBus.Messages.Events;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using MassTransit;
 
 namespace Basket.API.Controllers
 {
-
+    [ApiVersion("1")]
     public class BasketController : BaseApiController
     {
         private readonly IMediator _mediator;

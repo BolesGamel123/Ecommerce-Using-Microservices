@@ -20,11 +20,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddOrderingApplication();
 builder.Services.AddScoped<BasketOrderingConsumer>();
+builder.Services.AddScoped<BasketOrderingV2Consumer>();
 builder.Services.AddMassTransit(config =>
 {
     //Mark this as consumer
     config.AddConsumer<BasketOrderingConsumer>();
-
+    config.AddConsumer<BasketOrderingV2Consumer>();
     config.UsingRabbitMq((ctx, cfg) =>
     {
 
@@ -34,10 +35,13 @@ builder.Services.AddMassTransit(config =>
         {
             c.ConfigureConsumer<BasketOrderingConsumer>(ctx);
         });
+        //provide the queue name with consumer
+        cfg.ReceiveEndpoint(EventBusConstant.BasketCheckoutQueueV2, c =>
+        {
+            c.ConfigureConsumer<BasketOrderingV2Consumer>(ctx);
+        });
     });
 });
-
-
 builder.Services.AddMassTransitHostedService();
 
 builder.Services.AddApiVersioning(options =>

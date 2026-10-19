@@ -9,6 +9,7 @@ using Discount.Grpc.proto3;
 using MassTransit;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using static Discount.Grpc.proto3.DiscountProtoService;
 
@@ -51,8 +52,12 @@ builder.Services.AddApiVersioning(options =>
     options.AssumeDefaultVersionWhenUnspecified = true;
     options.DefaultApiVersion = new ApiVersion(1, 0);
 
-});
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
 
+    options.SubstituteApiVersionInUrl = true;
+});
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -69,8 +74,40 @@ builder.Services.AddSwaggerGen(options =>
         }
 
     });
+
+
+    options.SwaggerDoc("v2", new OpenApiInfo
+    {
+        Title = "Basket API",
+        Version = "v2",
+        Description = "this is Api for Basket Ecommerce V2 Application",
+        Contact = new OpenApiContact
+        {
+            Name = "Boles Gamel",
+            Email = "boles.gamel123@gmail.com"
+        }
+    });
+
+    options.DocInclusionPredicate((version, apiDescrption) =>
+    {
+        if (!apiDescrption.TryGetMethodInfo(out var methodInfo))
+        {
+            return false;
+        }
+
+        var versions = methodInfo.DeclaringType?
+                       .GetCustomAttributes(true)
+                       .OfType<ApiVersionAttribute>()
+                       .SelectMany(attr => attr.Versions);
+
+        return versions?.Any(v => $"v{v.ToString()}" == version) ?? false;
+
+    });
+
 });
 builder.Services.AddOpenApi();
+
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
@@ -80,7 +117,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/Swagger.json", "Basket.API v1");
+        c.SwaggerEndpoint("/swagger/v2/Swagger.json", "Basket.API v2");
+    });
 }
 
 app.UseSerilogRequestLogging();
