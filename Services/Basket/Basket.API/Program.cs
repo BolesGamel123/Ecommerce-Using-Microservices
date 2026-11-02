@@ -7,6 +7,9 @@ using Basket.Infrastructure.Repositories;
 using Common.Logging;
 using Discount.Grpc.proto3;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -18,6 +21,24 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Host.UseSerilog(Logging.ConfigureLogger);
 builder.Services.AddControllers();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters.ValidateIssuer = true;
+        options.Authority = "https://host.docker.internal:9009";
+        options.RequireHttpsMetadata = true;
+        options.TokenValidationParameters.ValidateAudience = true;
+        options.TokenValidationParameters.ValidAudience = "Basker";
+        options.TokenValidationParameters.ValidateLifetime = true;
+        options.TokenValidationParameters.ValidateIssuerSigningKey = true;
+        options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+
+        options.BackchannelHttpHandler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        };
+
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -44,6 +65,14 @@ config.UsingRabbitMq((ct,cfg)=>
 {
     cfg.Host(builder.Configuration["EventBusSettings:HostAddress"]);
 }));
+
+var userPolicy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser().Build();
+builder.Services.AddControllers(config =>
+{
+    config.Filters.Add(new AuthorizeFilter(userPolicy));
+});
+
 builder.Services.AddMassTransitHostedService();
 
 builder.Services.AddApiVersioning(options =>
@@ -125,7 +154,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

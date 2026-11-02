@@ -9,6 +9,8 @@ services:
       - "8000:8080"
     depends_on:
       - catalogdb
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - DatabaseSettings__ConnectionString=mongodb://catalogdb:27017
       - DatabaseSettings__DatabaseName=CatalogDb
@@ -16,6 +18,9 @@ services:
       - DatabaseSettings__CollectionNameTypes=Types
       - DatabaseSettings__CollectionNameProducts=Products
       - "ElasticConfiguration__Uri=http://elasticsearch:9200"
+      - Auth__Authority=http://localhost:9009
+      - Auth__RequireHttpsMetadata=false
+      - Auth__Audience=Catalog
 
   catalogdb:
     image: mongo

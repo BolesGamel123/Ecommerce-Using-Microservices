@@ -6,6 +6,9 @@ using Catalog.Infrastructure.Data.Contexts;
 using Catalog.Infrastructure.Repositories;
 using Catolog.Infrastructure.Data.Contexts;
 using Common.Logging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
@@ -15,8 +18,24 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Host.UseSerilog(Logging.ConfigureLogger);
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters.ValidateIssuer = true;
+        options.Authority = "https://host.docker.internal:9009";
+        options.RequireHttpsMetadata= true;
+        options.TokenValidationParameters.ValidateAudience = true;
+        options.TokenValidationParameters.ValidAudience = "Catalog";
+        options.TokenValidationParameters.ValidateLifetime = true;
+        options.TokenValidationParameters.ValidateIssuerSigningKey = true;
+        options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
 
+        options.BackchannelHttpHandler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        };
+
+    });
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);
 
 builder.Services.AddMediatR(cfg =>
@@ -29,6 +48,13 @@ builder.Services.AddScoped<ICatalogContext, CatalogContext>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IBrandRepository, ProductRepository>();
 builder.Services.AddScoped<ITypeRepository, ProductRepository>();
+
+var userPolicy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser().Build();
+builder.Services.AddControllers(config =>
+{
+    config.Filters.Add(new AuthorizeFilter(userPolicy));
+});
 
 builder.Services.AddApiVersioning(options =>
 {
@@ -78,7 +104,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
